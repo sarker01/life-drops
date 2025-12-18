@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - Life Drops</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <style>
+    body { background:#f6f7fb; }
+    .topbar { background:#fff; border-bottom:1px solid #eee; }
+    .card { border:0; border-radius:14px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+    .muted { color:#6c757d; }
+    .pill { padding:.25rem .6rem; border-radius:999px; font-size:.8rem; background:#f1f3f5; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+</head>
+
+<body>
+  <div class="topbar py-3">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div>
+        <div class="fw-bold">Life Drops</div>
+        <div class="muted small">Admin Panel</div>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-danger btn-sm" href="./dashboard.html">Dashboard</a>
+        <a class="btn btn-outline-secondary btn-sm" href="../index.html">Home</a>
+        <button class="btn btn-danger btn-sm" id="btnLogout">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-4">
+
+    <div class="row g-3 mb-3">
+      <div class="col-lg-4">
+        <div class="card p-4">
+          <div class="fw-bold">Admin Status</div>
+          <div class="muted">Only admin role should use this page</div>
+          <hr />
+          <div><b>Status:</b> <span id="statusText">Checking...</span></div>
+          <div><b>Role:</b> <span id="roleText">—</span></div>
+          <div><b>Name:</b> <span id="nameText">—</span></div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card p-4">
+          <div class="fw-bold">Quick Actions</div>
+          <div class="muted">Verify donors to show them in public search (we will enforce in search step)</div>
+          <div class="mt-3 d-flex flex-wrap gap-2">
+            <button class="btn btn-dark btn-sm" id="btnReload">Reload Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="card p-4 mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div>
+          <div class="fw-bold fs-5">All Users</div>
+          <div class="muted">Donor/Recipient list + Donor verify</div>
+        </div>
+        <div class="pill">
+          Total: <span id="usersCount">0</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Blood</th>
+              <th>Phone</th>
+              <th>Verified</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody id="usersTbody">
+            <tr><td colspan="6" class="muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Requests -->
+    <div class="card p-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div>
+          <div class="fw-bold fs-5">All Requests</div>
+          <div class="muted">Latest blood requests</div>
+        </div>
+        <div class="pill">
+          Total: <span id="reqCount">0</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Group</th>
+              <th>Bags</th>
+              <th>Need Time</th>
+              <th>Status</th>
+              <th class="text-end">Created</th>
+            </tr>
+          </thead>
+          <tbody id="reqTbody">
+            <tr><td colspan="6" class="muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999;">
+    <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMsg">Hello</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script type="module">
+    import { auth, db } from "../firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const statusText = document.getElementById("statusText");
+    const roleText = document.getElementById("roleText");
+    const nameText = document.getElementById("nameText");
+
+    const usersTbody = document.getElementById("usersTbody");
+    const usersCount = document.getElementById("usersCount");
+
+    const reqTbody = document.getElementById("reqTbody");
+    const reqCount = document.getElementById("reqCount");
+
+    const btnLogout = document.getElementById("btnLogout");
+    const btnReload = document.getElementById("btnReload");
+
+    function showToast(message, type = "dark") {
+      const toastEl = document.getElementById("appToast");
+      const toastMsg = document.getElementById("toastMsg");
+      if (!toastEl || !toastMsg || !window.bootstrap) return;
+      toastMsg.textContent = message;
+      toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+      const t = window.bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2500 });
+      t.show();
+    }
+
+    btnLogout.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "../index.html";
+    });
+
+    btnReload.addEventListener("click", async () => {
+      await loadAll();
+      showToast("Reloaded ✅", "success");
+    });
+
+    function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    function userRow(u) {
+      const name = esc(u.fullName || u.requesterName || "—");
+      const role = esc(u.role || "—");
+      const blood = esc(u.bloodGroup || "—");
+      const phone = esc(u.phone || u.requesterPhone || "—");
+
+      const isVerified = !!u.isVerified;
+      const verifiedBadge = isVerified
+        ? `<span class="badge bg-success">Verified</span>`
+        : `<span class="badge bg-secondary">No</span>`;
+
+      const actionBtn = (role === "donor")
+        ? `<button class="btn btn-sm ${isVerified ? "btn-outline-secondary" : "btn-success"}" data-action="toggleVerify" data-uid="${esc(u.id)}" data-now="${isVerified ? "1" : "0"}">
+             ${isVerified ? "Unverify" : "Verify"}
+           </button>`
+        : `<span class="muted">—</span>`;
+
+      return `
+        <tr>
+          <td>${name}</td>
+          <td><span class="pill">${role}</span></td>
+          <td>${blood}</td>
+          <td class="mono">${phone}</td>
+          <td>${verifiedBadge}</td>
+          <td class="text-end">${actionBtn}</td>
+        </tr>
+      `;
+    }
+
+    function reqRow(r) {
+      const patient = esc(r.patientName || "—");
+      const group = esc(r.bloodGroupNeeded || "—");
+      const bags = esc(r.bagsNeeded ?? "—");
+      const need = esc(r.needDateTime || "—");
+      const status = esc(r.status || "pending");
+      const created = r.createdAt ? new Date(r.createdAt).toLocaleString() : "—";
+
+      return `
+        <tr>
+          <td>${patient}</td>
+          <td><span class="pill">${group}</span></td>
+          <td>${bags}</td>
+          <td>${need}</td>
+          <td><span class="badge ${status === "pending" ? "bg-warning text-dark" : "bg-success"}">${status}</span></td>
+          <td class="text-end muted">${created}</td>
+        </tr>
+      `;
+    }
+
+    async function loadAll() {
+      // Users
+      const usersSnap = await getDocs(collection(db, "users"));
+      const users = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      usersCount.textContent = users.length;
+
+      usersTbody.innerHTML = users.length
+        ? users.map(userRow).join("")
+        : `<tr><td colspan="6" class="muted">No users</td></tr>`;
+
+      // Requests (order by createdAt if possible)
+      let reqSnap;
+      try {
+        reqSnap = await getDocs(query(collection(db, "requests"), orderBy("createdAt", "desc")));
+      } catch {
+        reqSnap = await getDocs(collection(db, "requests"));
+      }
+      const reqs = reqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      reqCount.textContent = reqs.length;
+
+      reqTbody.innerHTML = reqs.length
+        ? reqs.map(reqRow).join("")
+        : `<tr><td colspan="6" class="muted">No requests</td></tr>`;
+    }
+
+    // Delegate clicks for verify button
+    document.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button[data-action='toggleVerify']");
+      if (!btn) return;
+
+      const uid = btn.getAttribute("data-uid");
+      const now = btn.getAttribute("data-now") === "1"; // current state
+      const next = !now;
+
+      try {
+        await updateDoc(doc(db, "users", uid), { isVerified: next });
+        showToast(next ? "Donor verified ✅" : "Donor unverified ✅", "success");
+        await loadAll();
+      } catch (err) {
+        console.error(err);
+        showToast("Verify failed. Check Firestore rules.", "danger");
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        statusText.textContent = "Not logged in";
+        window.location.href = "../index.html";
+        return;
+      }
+
+      statusText.textContent = "Logged in";
+
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
+        roleText.textContent = "Unknown";
+        showToast("User profile not found in DB.", "warning");
+        return;
+      }
+
+      const me = snap.data();
+      roleText.textContent = me.role || "—";
+      nameText.textContent = me.fullName || me.requesterName || "—";
+
+      // Basic protection: only admin role can stay
+      if (me.role !== "admin") {
+        showToast("Access denied (admin only).", "danger");
+        window.location.href = "./dashboard.html";
+        return;
+      }
+
+      await loadAll();
+    });
+  </script>
+</body>
+</html>

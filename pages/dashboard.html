@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Life Drops</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <style>
+    body { background:#f6f7fb; }
+    .topbar { background:#fff; border-bottom:1px solid #eee; }
+    .brand-dot { width:10px; height:10px; border-radius:50%; background:#dc3545; display:inline-block; margin-right:8px; }
+    .card { border:0; border-radius:14px; box-shadow: 0 8px 24px rgba(0,0,0,.06); }
+    .muted { color:#6c757d; }
+    .badge-soft { background:#f1f3f5; color:#111; }
+  </style>
+</head>
+
+<body>
+  <!-- Top bar -->
+  <div class="topbar py-3">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <span class="brand-dot"></span>
+        <div class="fw-bold">Life Drops</div>
+        <span class="ms-2 muted">Dashboard</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-danger btn-sm" href="../index.html">Home</a>
+        <button id="btnLogoutTop" class="btn btn-danger btn-sm">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-4">
+
+    <!-- Profile summary -->
+    <div class="row g-3 mb-3">
+      <div class="col-lg-5">
+        <div class="card p-4 h-100">
+          <div class="d-flex align-items-start justify-content-between">
+            <div>
+              <div class="muted small">Status</div>
+              <div class="fs-5 fw-bold" id="statusText">Checking...</div>
+            </div>
+            <span class="badge badge-soft" id="roleBadge">—</span>
+          </div>
+
+          <hr class="my-3" />
+
+          <div class="muted small">Name</div>
+          <div class="fw-semibold" id="nameText">—</div>
+
+          <div class="d-flex gap-2 mt-3">
+            <a id="adminLink" class="btn btn-dark btn-sm d-none" href="./admin.html">Admin Panel</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card p-4 h-100">
+          <div class="fw-bold mb-1">Quick Tips</div>
+          <div class="muted">
+            Donor হলে availability ON রাখলে আপনার নাম search এ আসবে।  
+            Last donation date ঠিক রাখলে 90 days eligibility rule অনুযায়ী show হবে।
+          </div>
+          <div class="mt-3">
+            <span class="badge bg-danger">Privacy</span>
+            <span class="ms-2 muted">Production এ phone hide/verification add করবো।</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recipient request form -->
+    <div id="recipientBox" class="card p-4 d-none">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="fw-bold fs-5">Create Blood Request</div>
+          <div class="muted">সব তথ্য ঠিকভাবে দিন, পরে admin/donor contact করবে</div>
+        </div>
+        <span class="badge bg-warning text-dark">Recipient</span>
+      </div>
+
+      <form id="requestForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Patient Name</label>
+            <input name="patientName" class="form-control" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Blood Group Needed</label>
+            <select name="bloodGroupNeeded" class="form-select" required>
+              <option value="">Select</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option>
+              <option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Bags Needed</label>
+            <input name="bagsNeeded" type="number" min="1" class="form-control" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Need Date/Time</label>
+            <input name="needDateTime" type="datetime-local" class="form-control" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Urgency</label>
+            <select name="urgency" class="form-select">
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Hospital Name</label>
+            <input name="hospitalName" class="form-control" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Hospital Address</label>
+            <input name="hospitalAddress" class="form-control" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Latitude</label>
+            <input name="lat" class="form-control" placeholder="23.8103" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Longitude</label>
+            <input name="lng" class="form-control" placeholder="90.4125" required />
+          </div>
+
+          <div class="col-12">
+            <button class="btn btn-danger w-100" type="submit">Submit Request</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Donor dashboard -->
+    <div id="donorBox" class="card p-4 d-none">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <div class="fw-bold fs-5">Donor Dashboard</div>
+          <div class="muted">Availability এবং last donation date আপডেট করুন</div>
+        </div>
+        <span class="badge bg-success">Donor</span>
+      </div>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+          <div class="fw-semibold">Availability</div>
+          <div class="muted small">Available করলে সবাই আপনাকে সার্চে পাবে</div>
+        </div>
+        <div class="col-md-6 d-flex justify-content-md-end">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="toggleAvailable">
+            <label class="form-check-label" for="toggleAvailable">Available</label>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label mt-2">Update Last Donation Date</label>
+          <input id="updateLastDonation" type="date" class="form-control" />
+          <div class="muted small mt-1">নতুন তারিখ দিলে 90 days rule অনুযায়ী eligibility হবে</div>
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end">
+          <button id="btnSaveDonor" class="btn btn-danger w-100" type="button">Save</button>
+        </div>
+      </div>
+
+      <div class="alert alert-info mt-3 mb-0">
+        Note: রক্ত দিলে সাধারণত 90 দিন পর আবার দেওয়া safe.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ✅ Toast Container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMsg">Hello</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS bundle (Toast requires this) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script type="module">
+    import { auth, db } from "../firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { doc, getDoc, addDoc, collection, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const statusText = document.getElementById("statusText");
+    const roleBadge = document.getElementById("roleBadge");
+    const nameText = document.getElementById("nameText");
+    const recipientBox = document.getElementById("recipientBox");
+    const donorBox = document.getElementById("donorBox");
+    const adminLink = document.getElementById("adminLink");
+    const btnLogoutTop = document.getElementById("btnLogoutTop");
+
+    function showToast(message, type = "dark") {
+      const toastEl = document.getElementById("appToast");
+      const toastMsg = document.getElementById("toastMsg");
+      if (!toastEl || !toastMsg || !window.bootstrap) return;
+
+      toastMsg.textContent = message;
+      toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+
+      const t = window.bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2500 });
+      t.show();
+    }
+
+    btnLogoutTop.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "../index.html";
+    });
+
+    function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : null; }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        statusText.textContent = "Not logged in";
+        window.location.href = "../index.html";
+        return;
+      }
+
+      statusText.textContent = "Logged in";
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
+        roleBadge.textContent = "Unknown";
+        showToast("User profile not found in database.", "warning");
+        return;
+      }
+
+      const data = snap.data();
+      roleBadge.textContent = data.role || "—";
+      nameText.textContent = data.fullName || data.requesterName || "—";
+
+      if (data.role === "recipient") {
+        recipientBox.classList.remove("d-none");
+      } else if (data.role === "donor") {
+        donorBox.classList.remove("d-none");
+
+        const toggle = document.getElementById("toggleAvailable");
+        const lastInput = document.getElementById("updateLastDonation");
+        const btnSave = document.getElementById("btnSaveDonor");
+
+        toggle.checked = !!data.isAvailable;
+        lastInput.value = data.lastDonationDate || "";
+
+        btnSave.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "users", user.uid), {
+              isAvailable: toggle.checked,
+              lastDonationDate: lastInput.value
+            });
+            showToast("Donor profile updated ✅", "success");
+          } catch (e) {
+            console.error(e);
+            showToast("Failed to save. Check Firestore rules.", "danger");
+          }
+        });
+
+      } else if (data.role === "admin") {
+        adminLink.classList.remove("d-none");
+      }
+
+      // recipient request submit
+      const requestForm = document.getElementById("requestForm");
+      requestForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const fd = new FormData(requestForm);
+        const lat = safeNum(fd.get("lat"));
+        const lng = safeNum(fd.get("lng"));
+
+        if (lat === null || lng === null) {
+          showToast("Latitude/Longitude must be numbers.", "warning");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "requests"), {
+            createdByUid: user.uid,
+            requesterName: data.requesterName || "",
+            requesterPhone: data.requesterPhone || "",
+            patientName: fd.get("patientName"),
+            bloodGroupNeeded: fd.get("bloodGroupNeeded"),
+            bagsNeeded: Number(fd.get("bagsNeeded")),
+            needDateTime: fd.get("needDateTime"),
+            urgency: fd.get("urgency"),
+            hospitalName: fd.get("hospitalName"),
+            hospitalAddress: fd.get("hospitalAddress"),
+            location: { lat, lng },
+            status: "pending",
+            createdAt: Date.now()
+          });
+
+          showToast("Request submitted ✅", "success");
+          requestForm.reset();
+        } catch (e) {
+          console.error(e);
+          showToast("Request submit failed. Check Firestore rules.", "danger");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

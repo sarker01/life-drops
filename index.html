@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Life Drops - Blood Donation Platform</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="#home">
+        <i class="fas fa-tint text-danger me-2"></i><span class="fw-bold">Life Drops</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+          <li class="nav-item"><a class="nav-link" href="#donors">Find Donors</a></li>
+          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+
+          <li class="nav-item ms-lg-2">
+            <a class="btn btn-outline-danger" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+          </li>
+          <li class="nav-item ms-lg-2">
+            <a class="btn btn-danger" href="#" data-bs-toggle="modal" data-bs-target="#signupModal">Sign Up</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-section" id="home">
+    <div class="container text-center">
+      <h1 class="display-5 fw-bold mb-3">Save Lives Through Blood Donation</h1>
+      <h4 class="motto mb-3"><em>“One Drop Blood, Endless Lives”</em></h4>
+      <p class="lead mb-4">Find nearby blood donors in moments.</p>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-9">
+          <div class="card p-3 shadow-sm">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label mb-1">Blood Group</label>
+                <select id="searchBloodGroup" class="form-select">
+                  <option value="">Select group</option>
+                  <option>A+</option><option>A-</option>
+                  <option>B+</option><option>B-</option>
+                  <option>O+</option><option>O-</option>
+                  <option>AB+</option><option>AB-</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label mb-1">Your Latitude</label>
+                <input id="myLat" class="form-control" placeholder="Auto or type (e.g. 23.8103)"/>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label mb-1">Your Longitude</label>
+                <input id="myLng" class="form-control" placeholder="Auto or type (e.g. 90.4125)"/>
+              </div>
+
+              <div class="col-12 d-flex gap-2 mt-2">
+                <button id="btnUseMyLocation" class="btn btn-outline-danger flex-fill" type="button">
+                  <i class="fa-solid fa-location-crosshairs me-2"></i>Use My Location
+                </button>
+                <button id="btnSearch" class="btn btn-danger flex-fill" type="button">
+                  <i class="fa-solid fa-magnifying-glass me-2"></i>Search Donors
+                </button>
+              </div>
+
+              <small class="text-muted mt-2">
+                Tip: “Use My Location” চাপলে lat/lng অটো বসবে (allow location).
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="py-5 bg-light">
+    <div class="container">
+      <div class="row text-center g-3">
+        <div class="col-md-3">
+          <div class="stats-box p-4">
+            <div class="stats-number" id="statDonors">0</div>
+            <p class="mb-0">Registered Donors</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-box p-4">
+            <div class="stats-number" id="statRequests">0</div>
+            <p class="mb-0">Blood Requests</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-box p-4">
+            <div class="stats-number">24/7</div>
+            <p class="mb-0">Service</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stats-box p-4">
+            <div class="stats-number">Safe</div>
+            <p class="mb-0">Verified Flow</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="py-5" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card feature-card h-100">
+            <div class="card-body text-center p-4">
+              <div class="display-5 text-danger mb-2"><i class="fas fa-user-plus"></i></div>
+              <h4>Register</h4>
+              <p class="mb-0">Create profile as donor or recipient.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card feature-card h-100">
+            <div class="card-body text-center p-4">
+              <div class="display-5 text-danger mb-2"><i class="fas fa-search"></i></div>
+              <h4>Search</h4>
+              <p class="mb-0">Find donors by group & distance.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card feature-card h-100">
+            <div class="card-body text-center p-4">
+              <div class="display-5 text-danger mb-2"><i class="fas fa-handshake"></i></div>
+              <h4>Connect</h4>
+              <p class="mb-0">Contact donors and save lives.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Donors -->
+  <section class="py-5 bg-light" id="donors">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="section-title mb-0">Nearby Blood Donors</h2>
+        <a href="./pages/dashboard.html" class="btn btn-outline-danger btn-sm">Go to Dashboard</a>
+      </div>
+
+      <p class="text-muted mb-3">Search করলে এখানে distance অনুযায়ী donor list দেখাবে (কাছ থেকে দূর)।</p>
+
+      <div class="row" id="donorsRow">
+        <div class="col-12">
+          <div class="alert alert-info mb-0">
+            এখনো সার্চ করা হয়নি। উপরে Blood Group সিলেক্ট করে <b>Search Donors</b> চাপুন।
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="py-5" id="about">
+    <div class="container">
+      <div class="row align-items-center g-3">
+        <div class="col-md-6">
+          <h2 class="section-title">About Life Drops</h2>
+          <p>Life Drops connects blood donors and recipients quickly—especially during emergencies.</p>
+          <ul>
+            <li>Fast donor search</li>
+            <li>Nearby distance sorting</li>
+            <li>Direct contact</li>
+            <li>24/7 availability</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4">
+            <div class="text-center">
+              <i class="fas fa-map-marked-alt display-4 text-danger"></i>
+              <p class="mt-3 mb-0">Map Feature (optional upgrade later)</p>
+              <small class="text-muted">এখন distance-based list দিয়ে কাজ হবে।</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <h5><i class="fas fa-tint me-2"></i>Life Drops</h5>
+          <p class="mb-2">Donate blood, save lives.</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Links</h5>
+          <ul class="list-unstyled mb-0">
+            <li><a class="text-light" href="#home">Home</a></li>
+            <li><a class="text-light" href="#donors">Find Donors</a></li>
+            <li><a class="text-light" href="#about">About</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5>Contact</h5>
+          <div><i class="fas fa-map-marker-alt me-2"></i>Dhaka, Bangladesh</div>
+          <div><i class="fas fa-envelope me-2"></i>info@lifedrops.com</div>
+        </div>
+      </div>
+      <hr class="border-light opacity-25" />
+      <div class="text-center pb-2">© 2025 Life Drops</div>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <form id="loginForm" class="p-3">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input name="email" type="email" class="form-control" required />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="form-control" required />
+          </div>
+
+          <button class="btn btn-danger w-100" type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div class="modal fade" id="signupModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Sign Up</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="user-type-selector">
+            <button type="button" class="user-type-btn active" data-type="donor">I want to Donate</button>
+            <button type="button" class="user-type-btn" data-type="recipient">I need Blood</button>
+          </div>
+
+          <!-- Donor Form -->
+          <form id="donorForm" class="user-form active">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Full Name</label>
+                <input name="fullName" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone</label>
+                <input name="phone" class="form-control" required />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Blood Group</label>
+                <select name="bloodGroup" class="form-select" required>
+                  <option value="">Select</option>
+                  <option>A+</option><option>A-</option>
+                  <option>B+</option><option>B-</option>
+                  <option>O+</option><option>O-</option>
+                  <option>AB+</option><option>AB-</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Last Donation Date</label>
+                <input name="lastDonationDate" type="date" class="form-control" required />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Latitude</label>
+                <input name="lat" class="form-control" placeholder="23.8103" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Longitude</label>
+                <input name="lng" class="form-control" placeholder="90.4125" required />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input name="email" type="email" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Password</label>
+                <input name="password" type="password" class="form-control" required />
+              </div>
+
+              <div class="col-12 mt-2">
+                <label class="form-label">Any blood-related diseases?</label>
+                <select name="disease" class="form-select">
+                  <option value="no">No</option>
+                  <option value="yes">Yes</option>
+                </select>
+                <small class="text-muted">Admin/verification flow পরে add করা যাবে।</small>
+              </div>
+
+              <div class="col-12 mt-2">
+                <button class="btn btn-danger w-100" type="submit">Create Donor Account</button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Recipient Form -->
+          <form id="recipientForm" class="user-form">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label">Your Name</label>
+                <input name="requesterName" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone</label>
+                <input name="requesterPhone" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input name="email" type="email" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Password</label>
+                <input name="password" type="password" class="form-control" required />
+              </div>
+
+              <div class="col-12 mt-2">
+                <button class="btn btn-danger w-100" type="submit">Create Recipient Account</button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- IMPORTANT: module scripts -->
+  <!--<script type="module" src="firebase.js"></script>-->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
