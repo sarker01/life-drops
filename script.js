@@ -11,6 +11,10 @@ import {
   collection, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+/* ---------- auth state (privacy) ---------- */
+let IS_LOGGED_IN = false;
+let CURRENT_USER = null;
+
 /* ---------- helpers ---------- */
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -52,22 +56,33 @@ function donorCard(d) {
     ? `<span class="badge bg-success ms-2">Available</span>`
     : `<span class="badge bg-secondary ms-2">Unavailable</span>`;
 
-  const phone = d.phone ? d.phone : "";
-  const waLink = phone ? `https://wa.me/${phone.replace(/\D/g, "")}` : "#";
-  const callLink = phone ? `tel:${phone}` : "#";
+  // ✅ Privacy: login না থাকলে phone/contact show হবে না
+  let contactArea = `
+    <div class="alert alert-light border mb-0 p-2">
+      <i class="fas fa-lock me-1"></i>
+      Contact info দেখতে <b>Login</b> করুন।
+      <button class="btn btn-sm btn-danger ms-2" data-action="openLogin">Login</button>
+    </div>
+  `;
 
-  const contactButtons = phone
-    ? `
-      <div class="d-flex gap-2">
-        <a class="btn btn-outline-danger btn-sm" href="${callLink}">
-          <i class="fas fa-phone me-1"></i>Call
-        </a>
-        <a class="btn btn-danger btn-sm" href="${waLink}" target="_blank" rel="noreferrer">
-          <i class="fab fa-whatsapp me-1"></i>WhatsApp
-        </a>
-      </div>
-    `
-    : `<button class="btn btn-outline-secondary btn-sm" disabled>Contact hidden</button>`;
+  if (IS_LOGGED_IN) {
+    const phone = d.phone ? d.phone : "";
+    const waLink = phone ? `https://wa.me/${phone.replace(/\D/g, "")}` : "#";
+    const callLink = phone ? `tel:${phone}` : "#";
+
+    contactArea = phone
+      ? `
+        <div class="d-flex gap-2">
+          <a class="btn btn-outline-danger btn-sm" href="${callLink}">
+            <i class="fas fa-phone me-1"></i>Call
+          </a>
+          <a class="btn btn-danger btn-sm" href="${waLink}" target="_blank" rel="noreferrer">
+            <i class="fab fa-whatsapp me-1"></i>WhatsApp
+          </a>
+        </div>
+      `
+      : `<button class="btn btn-outline-secondary btn-sm" disabled>Contact not provided</button>`;
+  }
 
   return `
     <div class="col-md-6 mb-3">
@@ -90,7 +105,7 @@ function donorCard(d) {
           <div class="mb-2"><i class="fas fa-calendar me-2"></i>Last donation: ${last}</div>
           <div class="mb-3"><i class="fas fa-map-marker-alt me-2"></i>${d.area || "—"}</div>
 
-          ${contactButtons}
+          ${contactArea}
         </div>
       </div>
     </div>
@@ -99,6 +114,20 @@ function donorCard(d) {
 
 /* ---------- main ---------- */
 document.addEventListener("DOMContentLoaded", async () => {
+
+  // ✅ Donor card -> login button click => open login modal
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action='openLogin']");
+    if (!btn) return;
+
+    const loginModalEl = document.getElementById("loginModal");
+    if (loginModalEl && window.bootstrap) {
+      const m = window.bootstrap.Modal.getOrCreateInstance(loginModalEl);
+      m.show();
+    } else {
+      alert("Login modal not found!");
+    }
+  });
 
   // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
@@ -207,19 +236,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       await setDoc(doc(db, "users", cred.user.uid), {
         role: "donor",
         fullName,
-        phone,
+        phone,                 // NOTE: Level-1 privacy = UI hide only
         email,
         bloodGroup,
         lastDonationDate,
         disease,
         location: { lat, lng },
         isAvailable: true,
+        isVerified: false,     // ✅ admin verify করবে
         createdAt: Date.now()
       });
 
       alert("Donor Registration Successful! Now login.");
 
-            // ✅ Close signup modal + reset form + open login modal
+      // ✅ Close signup modal + reset form + open login modal
       donorForm.reset();
 
       const signupModalEl = document.getElementById("signupModal");
@@ -234,12 +264,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const m2 = window.bootstrap.Modal.getInstance(loginModalEl) || new window.bootstrap.Modal(loginModalEl);
         m2.show();
       }
-
-
-
-
-
-
 
     } catch (err) {
       alert(err?.message || "Signup failed");
@@ -269,8 +293,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       alert("Recipient Account Created! Now login.");
 
-
-           // ✅ Close signup modal + reset form + open login modal
+      // ✅ Close signup modal + reset form + open login modal
       recipientForm.reset();
 
       const signupModalEl = document.getElementById("signupModal");
@@ -286,18 +309,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         m2.show();
       }
 
-
-
-
-
     } catch (err) {
       alert(err?.message || "Signup failed");
     }
   });
 
-  // Optional log
+  // ✅ Auth state => privacy toggle
   onAuthStateChanged(auth, async (user) => {
-    if (!user) return;
+    CURRENT_USER = user || null;
+    IS_LOGGED_IN = !!user;
+
+    if (!user) {
+      console.log("Not logged in");
+      return;
+    }
+
     const snap = await getDoc(doc(db, "users", user.uid));
     if (snap.exists()) console.log("Logged in as:", snap.data().role);
   });
@@ -317,13 +343,12 @@ async function refreshStats() {
 
 async function findNearbyDonors(myLat, myLng, bloodGroup) {
   const q = query(
-  collection(db, "users"),
-  where("role", "==", "donor"),
-  where("bloodGroup", "==", bloodGroup),
-  where("isAvailable", "==", true),
-  where("isVerified", "==", true)
-);
-
+    collection(db, "users"),
+    where("role", "==", "donor"),
+    where("bloodGroup", "==", bloodGroup),
+    where("isAvailable", "==", true),
+    where("isVerified", "==", true)   // ✅ verified only
+  );
 
   const snap = await getDocs(q);
 
@@ -352,7 +377,7 @@ function renderDonors(list) {
     row.innerHTML = `
       <div class="col-12">
         <div class="alert alert-warning mb-0">
-          No eligible donors found nearby for this group.
+          No eligible verified donors found nearby for this group.
         </div>
       </div>
     `;
